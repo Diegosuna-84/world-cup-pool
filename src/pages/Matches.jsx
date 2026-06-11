@@ -79,9 +79,9 @@ function MatchCard({ match }) {
           <img src={`https://flagsapi.com/${match.code_home}/flat/64.png`} alt={match.home} style={{ width: "64px", height: "64px", objectFit: "contain", display: "block", margin: "0 auto 0.5rem" }} />
           <p style={{ color: "#fff", fontWeight: "600", fontSize: "0.95rem", marginBottom: "0.75rem" }}>{match.home}</p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-            <button onClick={() => setHomeScore((s) => Math.max(0, s - 1))} style={{ background: "#222", color: "#fff", border: "1px solid #333", borderRadius: "8px", width: "32px", height: "32px", cursor: "pointer", fontSize: "1.1rem" }}>−</button>
-            <span style={{ color: "#fff", fontSize: "1.8rem", fontWeight: "700", minWidth: "28px", textAlign: "center" }}>{homeScore}</span>
-            <button onClick={() => setHomeScore((s) => s + 1)} style={{ background: "#222", color: "#fff", border: "1px solid #333", borderRadius: "8px", width: "32px", height: "32px", cursor: "pointer", fontSize: "1.1rem" }}>+</button>
+            <button onClick={() => setHomeScore((s) => Math.max(0, s - 1))} disabled={submitted} style={{ background: "#222", color: submitted ? "#444" : "#fff", border: "1px solid #333", borderRadius: "8px", width: "32px", height: "32px", cursor: submitted ? "not-allowed" : "pointer", fontSize: "1.1rem" }}>−</button>
+            <span style={{ color: submitted ? "#4ade80" : "#fff", fontSize: "1.8rem", fontWeight: "700", minWidth: "28px", textAlign: "center" }}>{homeScore}</span>
+            <button onClick={() => setHomeScore((s) => s + 1)} disabled={submitted} style={{ background: "#222", color: submitted ? "#444" : "#fff", border: "1px solid #333", borderRadius: "8px", width: "32px", height: "32px", cursor: submitted ? "not-allowed" : "pointer", fontSize: "1.1rem" }}>+</button>
           </div>
         </div>
 
@@ -91,19 +91,26 @@ function MatchCard({ match }) {
           <img src={`https://flagsapi.com/${match.code_away}/flat/64.png`} alt={match.away} style={{ width: "64px", height: "64px", objectFit: "contain", display: "block", margin: "0 auto 0.5rem" }} />
           <p style={{ color: "#fff", fontWeight: "600", fontSize: "0.95rem", marginBottom: "0.75rem" }}>{match.away}</p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-            <button onClick={() => setAwayScore((s) => Math.max(0, s - 1))} style={{ background: "#222", color: "#fff", border: "1px solid #333", borderRadius: "8px", width: "32px", height: "32px", cursor: "pointer", fontSize: "1.1rem" }}>−</button>
-            <span style={{ color: "#fff", fontSize: "1.8rem", fontWeight: "700", minWidth: "28px", textAlign: "center" }}>{awayScore}</span>
-            <button onClick={() => setAwayScore((s) => s + 1)} style={{ background: "#222", color: "#fff", border: "1px solid #333", borderRadius: "8px", width: "32px", height: "32px", cursor: "pointer", fontSize: "1.1rem" }}>+</button>
+            <button onClick={() => setAwayScore((s) => Math.max(0, s - 1))} disabled={submitted} style={{ background: "#222", color: submitted ? "#444" : "#fff", border: "1px solid #333", borderRadius: "8px", width: "32px", height: "32px", cursor: submitted ? "not-allowed" : "pointer", fontSize: "1.1rem" }}>−</button>
+            <span style={{ color: submitted ? "#4ade80" : "#fff", fontSize: "1.8rem", fontWeight: "700", minWidth: "28px", textAlign: "center" }}>{awayScore}</span>
+            <button onClick={() => setAwayScore((s) => s + 1)} disabled={submitted} style={{ background: "#222", color: submitted ? "#444" : "#fff", border: "1px solid #333", borderRadius: "8px", width: "32px", height: "32px", cursor: submitted ? "not-allowed" : "pointer", fontSize: "1.1rem" }}>+</button>
           </div>
         </div>
       </div>
+
+      {submitted && (
+        <div style={{ textAlign: "center", marginBottom: "1rem", padding: "0.75rem", background: "#0d0d0d", borderRadius: "12px", border: "1px solid #1a3a1a" }}>
+          <p style={{ color: "#555", fontSize: "0.75rem", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "1px" }}>Your Prediction Saved</p>
+          <p style={{ color: "#4ade80", fontSize: "1.4rem", fontWeight: "700" }}>{homeScore} — {awayScore}</p>
+        </div>
+      )}
 
       <button
         onClick={handleSubmit}
         disabled={loading || submitted}
         style={{ width: "100%", padding: "0.85rem", borderRadius: "12px", border: "none", background: submitted ? "#1a1a1a" : loading ? "#333" : "linear-gradient(135deg, #4ade80 0%, #16a34a 100%)", color: submitted ? "#555" : "#000", fontWeight: "700", fontSize: "0.95rem", cursor: submitted ? "not-allowed" : "pointer", letterSpacing: "0.5px" }}
       >
-        {submitted ? "✓ Prediction Submitted" : loading ? "Saving..." : "Submit My Pick"}
+        {submitted ? "✓ Prediction Locked In" : loading ? "Saving..." : "Submit My Pick"}
       </button>
     </div>
   );
