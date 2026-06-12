@@ -15,27 +15,23 @@ export default async function handler(req, res) {
     return res.status(200).json({ message: 'No predictions to process' })
   }
 
-  const response = await fetch(
-    'https://v3.football.api-sports.io/fixtures?league=1&season=2026&status=FT',
-    { headers: { 'x-apisports-key': process.env.VITE_FOOTBALL_API_KEY } }
-  )
-  const { response: fixtures } = await response.json()
+  const response = await fetch('https://worldcup26.ir/get/games')
+  const matches = await response.json()
 
-  if (!fixtures || fixtures.length === 0) {
-    return res.status(200).json({ message: 'No finished matches yet' })
-  }
-
-  const fixtureMap = {}
-  for (const fixture of fixtures) {
-    fixtureMap[String(fixture.fixture.id)] = fixture
+  const matchMap = {}
+  for (const match of matches) {
+    matchMap[String(match.id)] = match
   }
 
   for (const prediction of predictions) {
-    const fixture = fixtureMap[prediction.match_id]
-    if (!fixture) continue
+    const match = matchMap[prediction.match_id]
+    if (!match) continue
 
-    const homeScore = fixture.goals.home
-    const awayScore = fixture.goals.away
+    const homeScore = match.home_score
+    const awayScore = match.away_score
+
+    if (homeScore === null || awayScore === null) continue
+
     const [predHome, predAway] = prediction.user_pick.split('-').map(Number)
     let points = 0
 
