@@ -90,8 +90,9 @@ function Home() {
       <div
         style={{
           display: "flex",
+          flexDirection: window.innerWidth < 768 ? "column" : "row",
           gap: "2rem",
-          padding: "2rem",
+          padding: "1rem",
           maxWidth: "1200px",
           margin: "0 auto",
         }}
@@ -162,7 +163,12 @@ function Home() {
         </div>
 
         {/* RIGHT — Login Form */}
-        <div style={{ width: "360px", flexShrink: 0 }}>
+        <div
+          style={{
+            width: window.innerWidth < 768 ? "100%" : "360px",
+            flexShrink: 0,
+          }}
+        >
           <div
             style={{
               background: "#141414",
