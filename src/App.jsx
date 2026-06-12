@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import Auth from './pages/Auth'
+import Home from './pages/Home'
 import Matches from './pages/Matches'
 import Leaderboard from './pages/Leaderboard'
 import Profile from './pages/Profile'
@@ -18,8 +18,7 @@ function App() {
   return (
     <div style={{ background: bg, minHeight: '100vh' }}>
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/matches" /> : <Navigate to="/auth" />} />
-        <Route path="/auth" element={<Auth />} />
+        <Route path="/" element={<Home />} />
         <Route path="/matches" element={<Matches />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/profile" element={<Profile />} />
