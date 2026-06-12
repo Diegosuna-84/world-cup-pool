@@ -1,7 +1,18 @@
 export default async function handler(req, res) {
   const response = await fetch(
-    `https://newsapi.org/v2/everything?q=World+Cup+2026&language=en&sortBy=publishedAt&pageSize=10&apiKey=${process.env.NEWS_API_KEY}`
+    'https://feeds.bbci.co.uk/sport/football/rss.xml'
   )
-  const data = await response.json()
-  res.status(200).json(data)
+  const text = await response.text()
+
+  const items = [...text.matchAll(/<item>([\s\S]*?)<\/item>/g)].map(match => {
+    const item = match[1]
+    const title = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || item.match(/<title>(.*?)<\/title>/)?.[1] || ''
+    const url = item.match(/<link>(.*?)<\/link>/)?.[1] || ''
+    const publishedAt = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || ''
+    const urlToImage = item.match(/url="(.*?)"/)?.[1] || null
+
+    return { title, url, publishedAt, urlToImage }
+  })
+
+  res.status(200).json({ articles: items })
 }
