@@ -12,7 +12,16 @@ function Home() {
   const navigate = useNavigate();
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
-  const user = JSON.parse(localStorage.getItem("user"));
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        const stored = JSON.parse(localStorage.getItem("user"))
+        setUser(stored)
+      }
+    })
+  }, [])
 
   useEffect(() => {
     fetch("/api/news")
@@ -29,45 +38,47 @@ function Home() {
     setError("");
 
     if (isLogin) {
-      const { data, error } = await supabase
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+      if (error) {
+        setError("Invalid email or password")
+        return
+      }
+
+      const { data: profile } = await supabase
         .from("users")
         .select("*")
         .eq("email", email)
-        .eq("password", password)
-        .single();
+        .single()
 
-      if (error || !data) {
-        setError("Invalid email or password");
-        return;
+      if (profile) {
+        localStorage.setItem("user", JSON.stringify(profile))
+        setUser(profile)
+        navigate("/matches")
       }
 
-      localStorage.setItem("user", JSON.stringify(data));
-      navigate("/matches");
     } else {
-      const { data: existing } = await supabase
-        .from("users")
-        .select("id")
-        .eq("email", email)
-        .single();
-
-      if (existing) {
-        setError("Email already registered");
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("users")
-        .insert([{ email, password, name: name || email.split("@")[0] }])
-        .select()
-        .single();
+      const { data, error } = await supabase.auth.signUp({ email, password })
 
       if (error) {
-        setError("Something went wrong. Try again.");
-        return;
+        setError(error.message)
+        return
       }
 
-      localStorage.setItem("user", JSON.stringify(data));
-      navigate("/matches");
+      const { data: profile, error: profileError } = await supabase
+        .from("users")
+        .insert([{ email, name: name || email.split("@")[0] }])
+        .select()
+        .single()
+
+      if (profileError) {
+        setError("Something went wrong. Try again.")
+        return
+      }
+
+      localStorage.setItem("user", JSON.stringify(profile))
+      setUser(profile)
+      navigate("/matches")
     }
   };
 

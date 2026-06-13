@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../services/supabase'
 
 function Navbar() {
   const navigate = useNavigate()
   const user = JSON.parse(localStorage.getItem('user'))
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
     localStorage.removeItem('user')
     navigate('/')
   }
