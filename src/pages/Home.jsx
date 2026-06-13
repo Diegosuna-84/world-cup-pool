@@ -7,6 +7,7 @@ function Home() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -58,16 +59,16 @@ function Home() {
       }
 
     } else {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      const { error: signUpError } = await supabase.auth.signUp({ email, password })
 
-      if (error) {
-        setError(error.message)
+      if (signUpError) {
+        setError(signUpError.message)
         return
       }
 
       const { data: profile, error: profileError } = await supabase
         .from("users")
-        .insert([{ email, name: name || email.split("@")[0] }])
+        .insert([{ email, name }])
         .select()
         .single()
 
@@ -149,8 +150,14 @@ function Home() {
                 )}
                 <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required
                   style={{ width: "100%", padding: "0.8rem 1rem", marginBottom: "0.75rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
-                <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required
-                  style={{ width: "100%", padding: "0.8rem 1rem", marginBottom: "1.5rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
+                <div style={{ position: "relative", marginBottom: "1.5rem" }}>
+                  <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required
+                    style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
+                  <span onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#555", fontSize: "0.85rem" }}>
+                    {showPassword ? "Hide" : "Show"}
+                  </span>
+                </div>
                 <button type="submit"
                   style={{ width: "100%", padding: "0.85rem", borderRadius: "10px", border: "none", background: "#e63946", color: "#fff", fontWeight: "700", fontSize: "1rem", cursor: "pointer" }}>
                   {isLogin ? "Login" : "Sign Up"}
