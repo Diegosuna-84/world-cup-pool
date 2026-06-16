@@ -127,12 +127,12 @@ function MatchCard({ match }) {
 }
 
 function processMatches(data, setMatchdays, setCurrentMatchday, setLoading) {
+  const uniqueDates = [...new Set(data.map(m => m.date))].sort();
   const grouped = {};
-  data.forEach(match => {
-    const day = match.matchday || 1;
-    if (!grouped[day]) grouped[day] = [];
-    grouped[day].push(match);
+  uniqueDates.forEach((date, i) => {
+    grouped[i + 1] = data.filter(m => m.date === date);
   });
+
   const days = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
   setMatchdays(days.map(d => grouped[d]));
 
