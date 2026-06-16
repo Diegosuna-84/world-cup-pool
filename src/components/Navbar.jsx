@@ -16,7 +16,7 @@ function Navbar() {
       
       {/* LOGO */}
       <span onClick={() => navigate('/')} style={{ fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer', color: '#fff' }}>
-        ⚽ WC 2026 Pool
+         WC 2026 Pool
       </span>
 
       {/* LINKS */}
