@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabase'
+import logo from '../assets/Wc_pool_logo.png'
 
 function Navbar() {
   const navigate = useNavigate()
@@ -16,7 +17,7 @@ function Navbar() {
       
       {/* LOGO */}
       <span onClick={() => navigate('/')} style={{ fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer', color: '#fff' }}>
-         WC 2026 Pool
+        <img src={logo} alt="WC Pool" style={{ height: "40px" }} /> WC 2026 Pool
       </span>
 
       {/* LINKS */}
