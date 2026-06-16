@@ -141,7 +141,7 @@ function processMatches(data, setMatchdays, setCurrentMatchday, setLoading) {
   let startDay = 0;
   for (let i = 0; i < days.length; i++) {
     const dayMatches = grouped[days[i]];
-    const hasUpcoming = dayMatches.some(m => new Date(m.date + 'T00:00:00') >= today);
+    const hasUpcoming = dayMatches.some(m => new Date(m.date) >= today);
     if (hasUpcoming) {
       startDay = i;
       break;
