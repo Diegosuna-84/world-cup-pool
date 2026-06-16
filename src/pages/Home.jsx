@@ -89,7 +89,6 @@ function Home() {
 
       <div style={{ display: "flex", flexDirection: window.innerWidth < 768 ? "column" : "row", gap: "2rem", padding: "1rem", maxWidth: "1200px", margin: "0 auto" }}>
 
-        {/* LEFT — News */}
         <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "1rem", color: "#fff" }}>
             ⚽ World Cup 2026 News
@@ -117,7 +116,6 @@ function Home() {
           )}
         </div>
 
-        {/* RIGHT — Welcome or Login */}
         <div style={{ width: window.innerWidth < 768 ? "100%" : "360px", flexShrink: 0 }}>
           {user ? (
             <div style={{ background: "#141414", padding: "2rem", borderRadius: "20px", border: "1px solid #222", textAlign: "center" }}>
@@ -150,7 +148,7 @@ function Home() {
                 )}
                 <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required
                   style={{ width: "100%", padding: "0.8rem 1rem", marginBottom: "0.75rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
-                <div style={{ position: "relative", marginBottom: "1.5rem" }}>
+                <div style={{ position: "relative", marginBottom: "0.5rem" }}>
                   <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required
                     style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
                   <span onClick={() => setShowPassword(!showPassword)}
@@ -158,6 +156,13 @@ function Home() {
                     {showPassword ? "Hide" : "Show"}
                   </span>
                 </div>
+
+                {isLogin && (
+                  <p onClick={() => navigate('/forgot-password')} style={{ color: "#555", fontSize: "0.8rem", textAlign: "right", cursor: "pointer", marginBottom: "1rem" }}>
+                    Forgot password?
+                  </p>
+                )}
+
                 <button type="submit"
                   style={{ width: "100%", padding: "0.85rem", borderRadius: "10px", border: "none", background: "#e63946", color: "#fff", fontWeight: "700", fontSize: "1rem", cursor: "pointer" }}>
                   {isLogin ? "Login" : "Sign Up"}
