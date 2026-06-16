@@ -147,7 +147,7 @@ function Matches() {
       let startDay = 0;
       for (let i = 0; i < days.length; i++) {
         const dayMatches = grouped[days[i]];
-        const hasUpcoming = dayMatches.some(m => new Date(m.date) >= today);
+        const hasUpcoming = dayMatches.some(m => new Date(m.date + 'T00:00:00') >= today);
         if (hasUpcoming) {
           startDay = i;
           break;
