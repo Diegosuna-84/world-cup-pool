@@ -72,18 +72,20 @@ function MatchCard({ match }) {
     setLoading(false);
   };
 
+  const displayDate = new Date(match.date).toLocaleDateString();
+
   return (
     <div style={{ background: "#141414", borderRadius: "20px", padding: "1.5rem", border: "1px solid #222", marginBottom: "1rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.25rem" }}>
         <span style={{ background: "#1a2e1a", color: "#4ade80", fontSize: "0.75rem", fontWeight: "600", padding: "4px 10px", borderRadius: "20px" }}>
-          Group {match.group}
+          {match.group}
         </span>
-        <span style={{ color: "#555", fontSize: "0.8rem" }}>{match.date}</span>
+        <span style={{ color: "#555", fontSize: "0.8rem" }}>{displayDate}</span>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
         <div style={{ textAlign: "center", flex: 1 }}>
-          <img src={`https://flagsapi.com/${match.code_home}/flat/64.png`} alt={match.home}
+          <img src={match.homeLogo} alt={match.home}
             style={{ width: "64px", height: "64px", objectFit: "contain", display: "block", margin: "0 auto 0.5rem" }} />
           <p style={{ color: "#fff", fontWeight: "600", fontSize: "0.95rem", marginBottom: "0.75rem" }}>{match.home}</p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
@@ -98,7 +100,7 @@ function MatchCard({ match }) {
         <span style={{ color: "#333", fontSize: "0.7rem", fontWeight: "600", letterSpacing: "2px" }}>VS</span>
 
         <div style={{ textAlign: "center", flex: 1 }}>
-          <img src={`https://flagsapi.com/${match.code_away}/flat/64.png`} alt={match.away}
+          <img src={match.awayLogo} alt={match.away}
             style={{ width: "64px", height: "64px", objectFit: "contain", display: "block", margin: "0 auto 0.5rem" }} />
           <p style={{ color: "#fff", fontWeight: "600", fontSize: "0.95rem", marginBottom: "0.75rem" }}>{match.away}</p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
@@ -127,10 +129,10 @@ function MatchCard({ match }) {
 }
 
 function processMatches(data, setMatchdays, setCurrentMatchday, setLoading) {
-  const uniqueDates = [...new Set(data.map(m => m.date))].sort();
+  const uniqueDates = [...new Set(data.map(m => m.date.substring(0, 10)))].sort();
   const grouped = {};
   uniqueDates.forEach((date, i) => {
-    grouped[i + 1] = data.filter(m => m.date === date);
+    grouped[i + 1] = data.filter(m => m.date.substring(0, 10) === date);
   });
 
   const days = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
