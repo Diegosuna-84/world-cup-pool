@@ -45,9 +45,9 @@ function Profile() {
       const response = await fetch("/api/teams");
       const data = await response.json();
       const teams = (data.response || []).map((t) => ({
-        name: t.name,
-        code: t.code,
-        logo: t.logo,
+        name: t.team.name,
+        code: t.team.id,
+        logo: t.team.logo,
       }));
       setAllTeams(teams);
     };
