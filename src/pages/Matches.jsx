@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getMatches } from "../services/prediction";
 import { supabase } from "../services/supabase";
 import Navbar from "../components/Navbar";
+import appLogo from "../assets/Wc_pool_logo.png";
 
 function MatchCard({ match }) {
   const [homeScore, setHomeScore] = useState(0);
@@ -86,6 +87,10 @@ function MatchCard({ match }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
         <div style={{ textAlign: "center", flex: 1 }}>
           <img src={match.homeLogo} alt={match.home}
+            onError={(e) => {
+              e.currentTarget.src = appLogo;
+              e.currentTarget.onerror = null;
+            }}
             style={{ width: "64px", height: "64px", objectFit: "contain", display: "block", margin: "0 auto 0.5rem" }} />
           <p style={{ color: "#fff", fontWeight: "600", fontSize: "0.95rem", marginBottom: "0.75rem" }}>{match.home}</p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
@@ -101,6 +106,10 @@ function MatchCard({ match }) {
 
         <div style={{ textAlign: "center", flex: 1 }}>
           <img src={match.awayLogo} alt={match.away}
+            onError={(e) => {
+              e.currentTarget.src = appLogo;
+              e.currentTarget.onerror = null;
+            }}
             style={{ width: "64px", height: "64px", objectFit: "contain", display: "block", margin: "0 auto 0.5rem" }} />
           <p style={{ color: "#fff", fontWeight: "600", fontSize: "0.95rem", marginBottom: "0.75rem" }}>{match.away}</p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>

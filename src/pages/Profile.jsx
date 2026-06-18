@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { supabase } from "../services/supabase";
+import appLogo from "../assets/Wc_pool_logo.png";
 
 function Profile() {
   const navigate = useNavigate();
@@ -44,9 +45,9 @@ function Profile() {
       const response = await fetch("/api/teams");
       const data = await response.json();
       const teams = (data.response || []).map((t) => ({
-        name: t.team.name,
-        code: t.team.id,
-        logo: `https://media.api-sports.io/football/teams/${t.team.id}.png`,
+        name: t.name,
+        code: t.code,
+        logo: t.logo,
       }));
       setAllTeams(teams);
     };
@@ -282,6 +283,10 @@ function Profile() {
                     <img
                       src={team.logo}
                       alt={team.name}
+                      onError={(e) => {
+                        e.currentTarget.src = appLogo;
+                        e.currentTarget.onerror = null;
+                      }}
                       style={{
                         width: "32px",
                         height: "32px",
@@ -331,6 +336,10 @@ function Profile() {
                   <img
                     src={`https://media.api-sports.io/football/teams/${fav.team_code}.png`}
                     alt={fav.team_name}
+                    onError={(e) => {
+                      e.currentTarget.src = appLogo;
+                      e.currentTarget.onerror = null;
+                    }}
                     style={{
                       width: "32px",
                       height: "32px",

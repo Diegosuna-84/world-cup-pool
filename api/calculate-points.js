@@ -15,21 +15,28 @@ export default async function handler(req, res) {
     return res.status(200).json({ message: "No predictions to process" });
   }
 
-  const response = await fetch("https://worldcup26.ir/get/games");
+  const response = await fetch(
+    "https://v3.football.api-sports.io/fixtures?league=1&season=2026&status=FT",
+    {
+      headers: {
+        "x-apisports-key": process.env.FOOTBALL_API_KEY,
+      },
+    }
+  );
   const data = await response.json();
-  const matches = data.games || data;
+  const matches = data.response || [];
 
   const matchMap = {};
   for (const match of matches) {
-    matchMap[String(match.id)] = match;
+    matchMap[String(match.fixture.id)] = match;
   }
 
   for (const prediction of predictions) {
     const match = matchMap[prediction.match_id];
     if (!match) continue;
 
-    const homeScore = match.home_score;
-    const awayScore = match.away_score;
+    const homeScore = match.goals.home;
+    const awayScore = match.goals.away;
 
     if (homeScore === null || awayScore === null) continue;
 
