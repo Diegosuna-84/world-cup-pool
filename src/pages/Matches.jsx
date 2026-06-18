@@ -122,6 +122,25 @@ function MatchCard({ match }) {
         </div>
       </div>
 
+      {match.venueName && (
+        <p style={{ color: "#555", fontSize: "0.75rem", textAlign: "center", marginBottom: "1rem" }}>
+          📍 {match.venueName}{match.venueCity ? `, ${match.venueCity}` : ''}
+        </p>
+      )}
+
+      {['FT', 'AET', 'PEN'].includes(match.status) && (
+        <div style={{ textAlign: "center", marginBottom: "1rem", padding: "0.75rem", background: "#0d0d0d", borderRadius: "12px", border: "1px solid #333" }}>
+          <p style={{ color: "#555", fontSize: "0.75rem", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "1px" }}>Full Time</p>
+          <p style={{ color: "#fff", fontSize: "1.4rem", fontWeight: "700" }}>{match.homeScoreFull} — {match.awayScoreFull}</p>
+        </div>
+      )}
+
+      {['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE'].includes(match.status) && (
+        <p style={{ color: "#f59e0b", fontSize: "0.8rem", textAlign: "center", fontWeight: "600", marginBottom: "1rem" }}>
+          ⏱ {match.elapsedMinutes}'
+        </p>
+      )}
+
       {submitted && (
         <div style={{ textAlign: "center", marginBottom: "1rem", padding: "0.75rem", background: "#0d0d0d", borderRadius: "12px", border: "1px solid #1a3a1a" }}>
           <p style={{ color: "#555", fontSize: "0.75rem", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "1px" }}>Your Prediction Saved</p>
