@@ -10,7 +10,16 @@ export default async function handler(req, res) {
     )
     const data = await response.json()
 
-    const matches = (data.response || []).map(item => ({
+    if (!data.response || data.response.length === 0) {
+      return res.status(200).json({
+        debug: true,
+        keyPresent: !!process.env.VITE_FOOTBALL_API_KEY,
+        apiStatus: response.status,
+        rawData: data
+      })
+    }
+
+    const matches = data.response.map(item => ({
       id: item.fixture.id,
       home: item.teams.home.name,
       away: item.teams.away.name,
@@ -25,6 +34,6 @@ export default async function handler(req, res) {
 
     res.status(200).json(matches)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message, stack: err.stack })
   }
 }
