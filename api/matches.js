@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     'https://v3.football.api-sports.io/fixtures?league=1&season=2026',
     {
       headers: {
-        'x-apisports-key': process.env.VITE_FOOTBALL_API_KEY
+        'x-apisports-key': process.env.FOOTBALL_API_KEY
       }
     }
   )
