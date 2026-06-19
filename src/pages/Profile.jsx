@@ -33,29 +33,12 @@ function Profile() {
       if (data?.background) setBg(data.background);
     };
 
-    const addFavorite = async (team) => {
-      const already = favorites.find((f) => f.team_code === String(team.code));
-      if (already) return;
-      const { data, error } = await supabase
+    const fetchFavorites = async () => {
+      const { data } = await supabase
         .from("favorites")
-        .insert([
-          {
-            user_id: user.id,
-            team_name: team.name,
-            team_code: String(team.code),
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Add favorite failed:", error);
-        return;
-      }
-
-      if (data) setFavorites([...favorites, data]);
-      setShowAddTeam(false);
-      setTeamSearch("");
+        .select("*")
+        .eq("user_id", user.id);
+      if (data) setFavorites(data);
     };
 
     const fetchTeams = async () => {
@@ -87,7 +70,7 @@ function Profile() {
   const addFavorite = async (team) => {
     const already = favorites.find((f) => f.team_code === String(team.code));
     if (already) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("favorites")
       .insert([
         {
@@ -98,6 +81,12 @@ function Profile() {
       ])
       .select()
       .single();
+
+    if (error) {
+      console.error("Add favorite failed:", error);
+      return;
+    }
+
     if (data) setFavorites([...favorites, data]);
     setShowAddTeam(false);
     setTeamSearch("");
