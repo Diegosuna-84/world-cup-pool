@@ -13,6 +13,7 @@ function Profile() {
   const [showAddTeam, setShowAddTeam] = useState(false);
   const [teamSearch, setTeamSearch] = useState("");
   const [allTeams, setAllTeams] = useState([]);
+  const [standings, setStandings] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -52,10 +53,17 @@ function Profile() {
       setAllTeams(teams);
     };
 
+    const fetchStandings = async () => {
+      const response = await fetch("/api/standings");
+      const data = await response.json();
+      setStandings(data || []);
+    };
+
     fetchStats();
     fetchProfile();
     fetchFavorites();
     fetchTeams();
+    fetchStandings();
   }, []);
 
   const addFavorite = async (team) => {
@@ -305,59 +313,107 @@ function Profile() {
               No favorite teams yet
             </p>
           ) : (
-            favorites.map((fav) => (
-              <div
-                key={fav.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "0.75rem",
-                  background: "#141414",
-                  borderRadius: "10px",
-                  marginBottom: "0.5rem",
-                }}
-              >
+            favorites.map((fav) => {
+              const teamStanding = standings.find(
+                (s) => s.teamName === fav.team_name,
+              );
+
+              return (
                 <div
+                  key={fav.id}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
+                    background: "#141414",
+                    borderRadius: "10px",
+                    marginBottom: "0.5rem",
+                    padding: "0.75rem",
                   }}
                 >
-                  <img
-                    src={`https://media.api-sports.io/football/teams/${fav.team_code}.png`}
-                    alt={fav.team_name}
-                    onError={(e) => {
-                      e.currentTarget.src = appLogo;
-                      e.currentTarget.onerror = null;
-                    }}
+                  <div
                     style={{
-                      width: "32px",
-                      height: "32px",
-                      objectFit: "contain",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                     }}
-                  />
-                  <span style={{ color: "#fff", fontSize: "0.9rem" }}>
-                    {fav.team_name}
-                  </span>
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.75rem",
+                      }}
+                    >
+                      <img
+                        src={`https://media.api-sports.io/football/teams/${fav.team_code}.png`}
+                        alt={fav.team_name}
+                        onError={(e) => {
+                          e.currentTarget.src = appLogo;
+                          e.currentTarget.onerror = null;
+                        }}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          objectFit: "contain",
+                        }}
+                      />
+                      <span style={{ color: "#fff", fontSize: "0.9rem" }}>
+                        {fav.team_name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => removeFavorite(fav.id)}
+                      style={{
+                        background: "transparent",
+                        color: "#e63946",
+                        border: "1px solid #e63946",
+                        borderRadius: "8px",
+                        padding: "0.3rem 0.6rem",
+                        cursor: "pointer",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  {teamStanding && (
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-around",
+                        marginTop: "0.75rem",
+                        paddingTop: "0.75rem",
+                        borderTop: "1px solid #222",
+                      }}
+                    >
+                      <div style={{ textAlign: "center" }}>
+                        <p style={{ color: "#4cc9f0", fontSize: "1rem", fontWeight: "700", margin: 0 }}>
+                          {teamStanding.group}
+                        </p>
+                        <p style={{ color: "#888", fontSize: "0.7rem", margin: 0 }}>Group</p>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <p style={{ color: "#4cc9f0", fontSize: "1rem", fontWeight: "700", margin: 0 }}>
+                          {teamStanding.rank}
+                        </p>
+                        <p style={{ color: "#888", fontSize: "0.7rem", margin: 0 }}>Rank</p>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <p style={{ color: "#4cc9f0", fontSize: "1rem", fontWeight: "700", margin: 0 }}>
+                          {teamStanding.points}
+                        </p>
+                        <p style={{ color: "#888", fontSize: "0.7rem", margin: 0 }}>Points</p>
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <p style={{ color: "#4cc9f0", fontSize: "1rem", fontWeight: "700", margin: 0 }}>
+                          {teamStanding.goalsFor}
+                        </p>
+                        <p style={{ color: "#888", fontSize: "0.7rem", margin: 0 }}>Goals</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={() => removeFavorite(fav.id)}
-                  style={{
-                    background: "transparent",
-                    color: "#e63946",
-                    border: "1px solid #e63946",
-                    borderRadius: "8px",
-                    padding: "0.3rem 0.6rem",
-                    cursor: "pointer",
-                    fontSize: "0.75rem",
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
