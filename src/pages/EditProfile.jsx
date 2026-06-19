@@ -22,17 +22,11 @@ function EditProfile() {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-  };
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
       setError("Image must be under 2MB.");
       return;
     }
+
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
   };
