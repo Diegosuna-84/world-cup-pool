@@ -30,7 +30,8 @@ function EditProfile() {
     setError("");
     setSuccess("");
 
-    const wantsPasswordChange = newPassword || confirmPassword || currentPassword;
+    const wantsPasswordChange =
+      newPassword || confirmPassword || currentPassword;
 
     if (wantsPasswordChange) {
       if (newPassword !== confirmPassword) {
@@ -59,6 +60,7 @@ function EditProfile() {
         .upload(filePath, avatarFile, { upsert: true });
 
       if (uploadError) {
+        console.error("Upload error:", uploadError);
         setError("Failed to upload image.");
         setLoading(false);
         return;
@@ -104,7 +106,12 @@ function EditProfile() {
       }
     }
 
-    const updatedUser = { ...user, name, avatar_url: avatarUrl, background: bg };
+    const updatedUser = {
+      ...user,
+      name,
+      avatar_url: avatarUrl,
+      background: bg,
+    };
     localStorage.setItem("user", JSON.stringify(updatedUser));
     window.dispatchEvent(new Event("bgchange"));
 
@@ -116,82 +123,284 @@ function EditProfile() {
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0a", color: "#fff" }}>
       <Navbar />
-      <div style={{ maxWidth: "480px", margin: "0 auto", padding: "1.5rem 1rem" }}>
-
+      <div
+        style={{ maxWidth: "480px", margin: "0 auto", padding: "1.5rem 1rem" }}
+      >
         <p
           onClick={() => navigate("/profile")}
-          style={{ color: "#888", fontSize: "0.85rem", cursor: "pointer", marginBottom: "1rem" }}
+          style={{
+            color: "#888",
+            fontSize: "0.85rem",
+            cursor: "pointer",
+            marginBottom: "1rem",
+          }}
         >
           ← Back to Profile
         </p>
 
-        <div style={{ background: "#1a1a2e", borderRadius: "16px", padding: "2rem", border: "1px solid #16213e" }}>
-          <h4 style={{ color: "#fff", marginBottom: "1.5rem" }}>✏️ Edit Profile</h4>
+        <div
+          style={{
+            background: "#1a1a2e",
+            borderRadius: "16px",
+            padding: "2rem",
+            border: "1px solid #16213e",
+          }}
+        >
+          <h4 style={{ color: "#fff", marginBottom: "1.5rem" }}>
+            ✏️ Edit Profile
+          </h4>
 
           <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-            <div style={{ width: "80px", height: "80px", borderRadius: "50%", margin: "0 auto 1rem", overflow: "hidden", background: "#e63946", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div
+              style={{
+                width: "80px",
+                height: "80px",
+                borderRadius: "50%",
+                margin: "0 auto 1rem",
+                overflow: "hidden",
+                background: "#e63946",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               {avatarPreview ? (
-                <img src={avatarPreview} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img
+                  src={avatarPreview}
+                  alt="avatar"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
               ) : (
-                <span style={{ fontSize: "1.8rem", fontWeight: "700", color: "#fff" }}>{user?.name?.[0]?.toUpperCase()}</span>
+                <span
+                  style={{
+                    fontSize: "1.8rem",
+                    fontWeight: "700",
+                    color: "#fff",
+                  }}
+                >
+                  {user?.name?.[0]?.toUpperCase()}
+                </span>
               )}
             </div>
-            <label style={{ cursor: "pointer", color: "#aaa", fontSize: "0.85rem", border: "1px solid #222", borderRadius: "10px", padding: "0.45rem 0.9rem", background: "#141414" }}>
+            <label
+              style={{
+                cursor: "pointer",
+                color: "#aaa",
+                fontSize: "0.85rem",
+                border: "1px solid #222",
+                borderRadius: "10px",
+                padding: "0.45rem 0.9rem",
+                background: "#141414",
+              }}
+            >
               Upload Photo
-              <input type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                style={{ display: "none" }}
+              />
             </label>
           </div>
 
-          <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)}
-            style={{ width: "100%", padding: "0.8rem 1rem", marginBottom: "1rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
+          <input
+            type="text"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "0.8rem 1rem",
+              marginBottom: "1rem",
+              borderRadius: "10px",
+              border: "1px solid #222",
+              background: "#0d0d0d",
+              color: "#fff",
+              fontSize: "0.95rem",
+              boxSizing: "border-box",
+            }}
+          />
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-            <p style={{ color: "#888", fontSize: "0.85rem", margin: 0 }}>App background color</p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "1.5rem",
+            }}
+          >
+            <p style={{ color: "#888", fontSize: "0.85rem", margin: 0 }}>
+              App background color
+            </p>
             <input
               type="color"
               value={bg}
               onChange={(e) => setBg(e.target.value)}
-              style={{ width: "48px", height: "48px", border: "none", borderRadius: "8px", cursor: "pointer", background: "transparent" }}
+              style={{
+                width: "48px",
+                height: "48px",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                background: "transparent",
+              }}
             />
           </div>
 
-          <h4 style={{ color: "#fff", marginBottom: "1rem", borderTop: "1px solid #222", paddingTop: "1.5rem" }}>🔒 Change Password</h4>
-          <p style={{ color: "#555", fontSize: "0.8rem", marginBottom: "1rem" }}>Leave blank to keep your current password.</p>
+          <h4
+            style={{
+              color: "#fff",
+              marginBottom: "1rem",
+              borderTop: "1px solid #222",
+              paddingTop: "1.5rem",
+            }}
+          >
+            🔒 Change Password
+          </h4>
+          <p
+            style={{ color: "#555", fontSize: "0.8rem", marginBottom: "1rem" }}
+          >
+            Leave blank to keep your current password.
+          </p>
 
           <div style={{ position: "relative", marginBottom: "0.75rem" }}>
-            <input type={showCurrentPassword ? "text" : "password"} placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
-              style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
-            <span onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-              style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#555", fontSize: "0.85rem" }}>
+            <input
+              type={showCurrentPassword ? "text" : "password"}
+              placeholder="Current password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "0.8rem 1rem",
+                borderRadius: "10px",
+                border: "1px solid #222",
+                background: "#0d0d0d",
+                color: "#fff",
+                fontSize: "0.95rem",
+                boxSizing: "border-box",
+              }}
+            />
+            <span
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              style={{
+                position: "absolute",
+                right: "1rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                color: "#555",
+                fontSize: "0.85rem",
+              }}
+            >
               {showCurrentPassword ? "Hide" : "Show"}
             </span>
           </div>
 
           <div style={{ position: "relative", marginBottom: "0.75rem" }}>
-            <input type={showNewPassword ? "text" : "password"} placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-              style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
-            <span onClick={() => setShowNewPassword(!showNewPassword)}
-              style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#555", fontSize: "0.85rem" }}>
+            <input
+              type={showNewPassword ? "text" : "password"}
+              placeholder="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "0.8rem 1rem",
+                borderRadius: "10px",
+                border: "1px solid #222",
+                background: "#0d0d0d",
+                color: "#fff",
+                fontSize: "0.95rem",
+                boxSizing: "border-box",
+              }}
+            />
+            <span
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              style={{
+                position: "absolute",
+                right: "1rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                color: "#555",
+                fontSize: "0.85rem",
+              }}
+            >
               {showNewPassword ? "Hide" : "Show"}
             </span>
           </div>
 
-          <input type={showNewPassword ? "text" : "password"} placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-            style={{ width: "100%", padding: "0.8rem 1rem", marginBottom: "0.5rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
+          <input
+            type={showNewPassword ? "text" : "password"}
+            placeholder="Confirm new password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "0.8rem 1rem",
+              marginBottom: "0.5rem",
+              borderRadius: "10px",
+              border: "1px solid #222",
+              background: "#0d0d0d",
+              color: "#fff",
+              fontSize: "0.95rem",
+              boxSizing: "border-box",
+            }}
+          />
 
-          <p onClick={() => navigate("/forgot-password")} style={{ color: "#555", fontSize: "0.8rem", textAlign: "right", cursor: "pointer", marginBottom: "1.5rem" }}>
+          <p
+            onClick={() => navigate("/forgot-password")}
+            style={{
+              color: "#555",
+              fontSize: "0.8rem",
+              textAlign: "right",
+              cursor: "pointer",
+              marginBottom: "1.5rem",
+            }}
+          >
             Forgot password?
           </p>
 
-          {error && <p style={{ color: "#e63946", fontSize: "0.85rem", marginBottom: "0.75rem" }}>{error}</p>}
-          {success && <p style={{ color: "#4ade80", fontSize: "0.85rem", marginBottom: "0.75rem" }}>{success}</p>}
+          {error && (
+            <p
+              style={{
+                color: "#e63946",
+                fontSize: "0.85rem",
+                marginBottom: "0.75rem",
+              }}
+            >
+              {error}
+            </p>
+          )}
+          {success && (
+            <p
+              style={{
+                color: "#4ade80",
+                fontSize: "0.85rem",
+                marginBottom: "0.75rem",
+              }}
+            >
+              {success}
+            </p>
+          )}
 
-          <button onClick={handleSave} disabled={loading}
-            style={{ width: "100%", padding: "0.85rem", borderRadius: "10px", border: "none", background: "#e63946", color: "#fff", fontWeight: "700", fontSize: "1rem", cursor: "pointer" }}>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            style={{
+              width: "100%",
+              padding: "0.85rem",
+              borderRadius: "10px",
+              border: "none",
+              background: "#e63946",
+              color: "#fff",
+              fontWeight: "700",
+              fontSize: "1rem",
+              cursor: "pointer",
+            }}
+          >
             {loading ? "Saving..." : "Save Changes"}
           </button>
         </div>
-
       </div>
     </div>
   );
