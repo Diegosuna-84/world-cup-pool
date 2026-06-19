@@ -7,6 +7,7 @@ function EditProfile() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const [name, setName] = useState(user?.name || "");
+  const [bg, setBg] = useState(user?.background || "#0a0a0a");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -14,10 +15,8 @@ function EditProfile() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || null);
-  const [nameSuccess, setNameSuccess] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
-  const [nameError, setNameError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleAvatarChange = (e) => {
@@ -27,10 +26,30 @@ function EditProfile() {
     setAvatarPreview(URL.createObjectURL(file));
   };
 
-  const handleSaveName = async () => {
-    setNameError("");
-    setNameSuccess("");
+  const handleSave = async () => {
+    setError("");
+    setSuccess("");
+
+    const wantsPasswordChange = newPassword || confirmPassword || currentPassword;
+
+    if (wantsPasswordChange) {
+      if (newPassword !== confirmPassword) {
+        setError("New passwords do not match.");
+        return;
+      }
+      if (newPassword.length < 8) {
+        setError("New password must be at least 8 characters.");
+        return;
+      }
+      if (!currentPassword) {
+        setError("Enter your current password to change it.");
+        return;
+      }
+    }
+
     setLoading(true);
+
+    let avatarUrl = user?.avatar_url || null;
 
     if (avatarFile) {
       const fileExt = avatarFile.name.split(".").pop();
@@ -40,7 +59,7 @@ function EditProfile() {
         .upload(filePath, avatarFile, { upsert: true });
 
       if (uploadError) {
-        setNameError("Failed to upload image.");
+        setError("Failed to upload image.");
         setLoading(false);
         return;
       }
@@ -48,60 +67,50 @@ function EditProfile() {
       const { data: urlData } = supabase.storage
         .from("avatars")
         .getPublicUrl(filePath);
-
-      await supabase.from("users").update({ avatar_url: urlData.publicUrl, name }).eq("id", user.id);
-      const updatedUser = { ...user, name, avatar_url: urlData.publicUrl };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    } else {
-      await supabase.from("users").update({ name }).eq("id", user.id);
-      const updatedUser = { ...user, name };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      avatarUrl = urlData.publicUrl;
     }
 
-    setNameSuccess("Profile updated.");
-    setLoading(false);
-  };
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ name, avatar_url: avatarUrl, background: bg })
+      .eq("id", user.id);
 
-  const handleChangePassword = async () => {
-    setPasswordError("");
-    setPasswordSuccess("");
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError("Passwords do not match.");
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      setPasswordError("Password must be at least 8 characters.");
-      return;
-    }
-
-    setLoading(true);
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: currentPassword
-    });
-
-    if (signInError) {
-      setPasswordError("Current password is incorrect.");
+    if (updateError) {
+      setError("Failed to save profile changes.");
       setLoading(false);
       return;
     }
 
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (wantsPasswordChange) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
 
-    if (error) {
-      setPasswordError(error.message);
-      setLoading(false);
-      return;
+      if (signInError) {
+        setError("Current password is incorrect.");
+        setLoading(false);
+        return;
+      }
+
+      const { error: passwordUpdateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (passwordUpdateError) {
+        setError(passwordUpdateError.message);
+        setLoading(false);
+        return;
+      }
     }
 
-    setPasswordSuccess("Password updated.");
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    const updatedUser = { ...user, name, avatar_url: avatarUrl, background: bg };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    window.dispatchEvent(new Event("bgchange"));
+
+    setSuccess("Profile updated.");
     setLoading(false);
+    navigate("/profile");
   };
 
   return (
@@ -109,8 +118,14 @@ function EditProfile() {
       <Navbar />
       <div style={{ maxWidth: "480px", margin: "0 auto", padding: "1.5rem 1rem" }}>
 
-        {/* Profile Picture + Name */}
-        <div style={{ background: "#1a1a2e", borderRadius: "16px", padding: "2rem", border: "1px solid #16213e", marginBottom: "1rem" }}>
+        <p
+          onClick={() => navigate("/profile")}
+          style={{ color: "#888", fontSize: "0.85rem", cursor: "pointer", marginBottom: "1rem" }}
+        >
+          ← Back to Profile
+        </p>
+
+        <div style={{ background: "#1a1a2e", borderRadius: "16px", padding: "2rem", border: "1px solid #16213e" }}>
           <h4 style={{ color: "#fff", marginBottom: "1.5rem" }}>✏️ Edit Profile</h4>
 
           <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
@@ -130,18 +145,18 @@ function EditProfile() {
           <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)}
             style={{ width: "100%", padding: "0.8rem 1rem", marginBottom: "1rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
 
-          {nameError && <p style={{ color: "#e63946", fontSize: "0.85rem", marginBottom: "0.75rem" }}>{nameError}</p>}
-          {nameSuccess && <p style={{ color: "#4ade80", fontSize: "0.85rem", marginBottom: "0.75rem" }}>{nameSuccess}</p>}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+            <p style={{ color: "#888", fontSize: "0.85rem", margin: 0 }}>App background color</p>
+            <input
+              type="color"
+              value={bg}
+              onChange={(e) => setBg(e.target.value)}
+              style={{ width: "48px", height: "48px", border: "none", borderRadius: "8px", cursor: "pointer", background: "transparent" }}
+            />
+          </div>
 
-          <button onClick={handleSaveName} disabled={loading}
-            style={{ width: "100%", padding: "0.85rem", borderRadius: "10px", border: "none", background: "#e63946", color: "#fff", fontWeight: "700", fontSize: "1rem", cursor: "pointer" }}>
-            Save Changes
-          </button>
-        </div>
-
-        {/* Change Password */}
-        <div style={{ background: "#1a1a2e", borderRadius: "16px", padding: "2rem", border: "1px solid #16213e" }}>
-          <h4 style={{ color: "#fff", marginBottom: "1.5rem" }}>🔒 Change Password</h4>
+          <h4 style={{ color: "#fff", marginBottom: "1rem", borderTop: "1px solid #222", paddingTop: "1.5rem" }}>🔒 Change Password</h4>
+          <p style={{ color: "#555", fontSize: "0.8rem", marginBottom: "1rem" }}>Leave blank to keep your current password.</p>
 
           <div style={{ position: "relative", marginBottom: "0.75rem" }}>
             <input type={showCurrentPassword ? "text" : "password"} placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
@@ -164,16 +179,16 @@ function EditProfile() {
           <input type={showNewPassword ? "text" : "password"} placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
             style={{ width: "100%", padding: "0.8rem 1rem", marginBottom: "0.5rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
 
-          <p onClick={() => navigate("/forgot-password")} style={{ color: "#555", fontSize: "0.8rem", textAlign: "right", cursor: "pointer", marginBottom: "1rem" }}>
+          <p onClick={() => navigate("/forgot-password")} style={{ color: "#555", fontSize: "0.8rem", textAlign: "right", cursor: "pointer", marginBottom: "1.5rem" }}>
             Forgot password?
           </p>
 
-          {passwordError && <p style={{ color: "#e63946", fontSize: "0.85rem", marginBottom: "0.75rem" }}>{passwordError}</p>}
-          {passwordSuccess && <p style={{ color: "#4ade80", fontSize: "0.85rem", marginBottom: "0.75rem" }}>{passwordSuccess}</p>}
+          {error && <p style={{ color: "#e63946", fontSize: "0.85rem", marginBottom: "0.75rem" }}>{error}</p>}
+          {success && <p style={{ color: "#4ade80", fontSize: "0.85rem", marginBottom: "0.75rem" }}>{success}</p>}
 
-          <button onClick={handleChangePassword} disabled={loading}
+          <button onClick={handleSave} disabled={loading}
             style={{ width: "100%", padding: "0.85rem", borderRadius: "10px", border: "none", background: "#e63946", color: "#fff", fontWeight: "700", fontSize: "1rem", cursor: "pointer" }}>
-            Update Password
+            {loading ? "Saving..." : "Save Changes"}
           </button>
         </div>
 

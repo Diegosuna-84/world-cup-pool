@@ -58,15 +58,6 @@ function Profile() {
     fetchTeams();
   }, []);
 
-  const changeBg = async (color) => {
-    setBg(color);
-    window.dispatchEvent(new Event("bgchange"));
-    await supabase
-      .from("users")
-      .update({ background: color })
-      .eq("id", user.id);
-  };
-
   const addFavorite = async (team) => {
     const already = favorites.find((f) => f.team_code === String(team.code));
     if (already) return;
@@ -160,35 +151,30 @@ function Profile() {
               padding: "0.45rem 0.9rem",
               cursor: "pointer",
               fontSize: "0.85rem",
-              marginBottom: "1rem",
+              marginBottom: "1.5rem",
             }}
           >
             ✏️ Edit Profile
           </button>
-          <div style={{ marginBottom: "1.5rem" }}>
-            <p
-              style={{
-                color: "#888",
-                fontSize: "0.85rem",
-                marginBottom: "0.5rem",
-              }}
-            >
-              App background color
-            </p>
-            <input
-              type="color"
-              value={bg}
-              onChange={(e) => changeBg(e.target.value)}
-              style={{
-                width: "48px",
-                height: "48px",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                background: "transparent",
-              }}
-            />
-          </div>
+
+          {favorites.length > 0 && (
+            <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+              {favorites.map((fav) => (
+                <img
+                  key={fav.id}
+                  src={`https://media.api-sports.io/football/teams/${fav.team_code}.png`}
+                  alt={fav.team_name}
+                  title={fav.team_name}
+                  onError={(e) => {
+                    e.currentTarget.src = appLogo;
+                    e.currentTarget.onerror = null;
+                  }}
+                  style={{ width: "32px", height: "32px", objectFit: "contain" }}
+                />
+              ))}
+            </div>
+          )}
+
           <div style={{ display: "flex", justifyContent: "space-around" }}>
             <div>
               <p
