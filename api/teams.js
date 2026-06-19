@@ -8,11 +8,5 @@ export default async function handler(req, res) {
     }
   )
   const data = await response.json()
-  const teams = (data.response || []).map(item => ({
-    name: item.team.name,
-    code: item.team.id,
-    logo: item.team.logo,
-  }))
-
-  res.status(200).json({ response: teams })
+  res.status(200).json(data)
 }
