@@ -7,11 +7,30 @@ function Leaderboard() {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
-      const { data } = await supabase
+      const { data: leaderboardData } = await supabase
         .from("leaderboard")
         .select("*")
         .order("total_points", { ascending: false });
-      if (data) setPlayers(data);
+
+      if (!leaderboardData) return;
+
+      const userIds = leaderboardData.map((p) => p.user_id);
+      const { data: usersData } = await supabase
+        .from("users")
+        .select("id, avatar_url")
+        .in("id", userIds);
+
+      const avatarById = {};
+      (usersData || []).forEach((u) => {
+        avatarById[u.id] = u.avatar_url;
+      });
+
+      const merged = leaderboardData.map((p) => ({
+        ...p,
+        avatar_url: avatarById[p.user_id] || null,
+      }));
+
+      setPlayers(merged);
     };
     fetchLeaderboard();
   }, []);
@@ -45,7 +64,7 @@ function Leaderboard() {
               }}
             >
               <div
-                style={{ display: "flex", alignItems: "center", gap: "1rem" }}
+                style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
               >
                 <span
                   style={{
@@ -55,6 +74,32 @@ function Leaderboard() {
                 >
                   #{i + 1}
                 </span>
+                <div
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    background: "#e63946",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    fontSize: "0.85rem",
+                    fontWeight: "700",
+                    color: "#fff",
+                  }}
+                >
+                  {p.avatar_url ? (
+                    <img
+                      src={p.avatar_url}
+                      alt={p.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    p.name?.[0]?.toUpperCase()
+                  )}
+                </div>
                 <span style={{ color: "#fff" }}>{p.name}</span>
               </div>
               <div style={{ textAlign: "right" }}>
