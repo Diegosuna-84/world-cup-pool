@@ -188,12 +188,16 @@ function Matches() {
 
   useEffect(() => {
     const cached = sessionStorage.getItem('matches');
-    if (cached) {
+    const cachedAt = sessionStorage.getItem('matchesTimestamp');
+    const isFresh = cachedAt && (Date.now() - Number(cachedAt) < 30 * 1000);
+
+    if (cached && isFresh) {
       processMatches(JSON.parse(cached), setMatchdays, setCurrentMatchday, setLoading);
       return;
     }
     getMatches().then((data) => {
       sessionStorage.setItem('matches', JSON.stringify(data));
+      sessionStorage.setItem('matchesTimestamp', String(Date.now()));
       processMatches(data, setMatchdays, setCurrentMatchday, setLoading);
     });
   }, []);
