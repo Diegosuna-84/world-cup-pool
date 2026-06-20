@@ -619,29 +619,35 @@ function Home() {
   const [topScorersLoading, setTopScorersLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/matches")
-      .then((res) => res.json())
-      .then(async (data) => {
-        setMatches(data || []);
-        const hasLiveOrUpcoming = (data || []).some(
-          (m) =>
-            LIVE_STATUSES.includes(m.status) ||
-            (m.status === "NS" && new Date(m.date) >= new Date()),
-        );
-        if (!hasLiveOrUpcoming) {
-          try {
-            const scoreRes = await fetch("/api/scores");
-            const scoreData = await scoreRes.json();
-            const fixtures = (scoreData.response || []).map(mapScoreFixture);
-            fixtures.sort((a, b) => new Date(b.date) - new Date(a.date));
-            setScoreFallback(fixtures[0] || null);
-          } catch {
-            setScoreFallback(null);
+    const fetchMatches = () => {
+      fetch("/api/matches")
+        .then((res) => res.json())
+        .then(async (data) => {
+          setMatches(data || []);
+          const hasLiveOrUpcoming = (data || []).some(
+            (m) =>
+              LIVE_STATUSES.includes(m.status) ||
+              (m.status === "NS" && new Date(m.date) >= new Date()),
+          );
+          if (!hasLiveOrUpcoming) {
+            try {
+              const scoreRes = await fetch("/api/scores");
+              const scoreData = await scoreRes.json();
+              const fixtures = (scoreData.response || []).map(mapScoreFixture);
+              fixtures.sort((a, b) => new Date(b.date) - new Date(a.date));
+              setScoreFallback(fixtures[0] || null);
+            } catch {
+              setScoreFallback(null);
+            }
           }
-        }
-        setMatchesLoading(false);
-      })
-      .catch(() => setMatchesLoading(false));
+          setMatchesLoading(false);
+        })
+        .catch(() => setMatchesLoading(false));
+    };
+
+    fetchMatches();
+    const interval = setInterval(fetchMatches, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
