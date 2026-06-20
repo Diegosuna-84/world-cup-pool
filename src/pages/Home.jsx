@@ -436,7 +436,7 @@ function NewsCard({ news, loading }) {
           </p>
         ) : (
           topNews.map((article, i) => (
-            
+              <a
               key={i}
               href={article.url}
               target="_blank"
