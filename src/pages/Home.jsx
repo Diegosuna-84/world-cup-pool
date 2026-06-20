@@ -487,6 +487,126 @@ function NewsCard({ news, loading }) {
   );
 }
 
+function TopScorersCard({ topScorers, loading }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+        padding: "1.5rem",
+        boxSizing: "border-box",
+      }}
+    >
+      <div
+        style={{
+          background: "#141414",
+          borderRadius: "20px",
+          padding: "1.5rem",
+          border: "1px solid #222",
+        }}
+      >
+        <h2
+          style={{
+            color: "#fff",
+            fontSize: "1rem",
+            fontWeight: "700",
+            marginBottom: "1.25rem",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+          }}
+        >
+          ⚽ Top 10 Goal Scorers
+        </h2>
+
+        {loading ? (
+          <p style={{ color: "#555", textAlign: "center" }}>
+            Loading top scorers...
+          </p>
+        ) : topScorers.length === 0 ? (
+          <p style={{ color: "#555", textAlign: "center" }}>
+            No data available
+          </p>
+        ) : (
+          topScorers.map((player, i) => (
+            <div
+              key={player.playerId}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "#0d0d0d",
+                borderRadius: "10px",
+                padding: "0.65rem 1rem",
+                marginBottom: "0.5rem",
+                border: i < 3 ? "1px solid #3a2a1a" : "1px solid #1f1f1f",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                }}
+              >
+                <span
+                  style={{
+                    color: i < 3 ? "#f59e0b" : "#555",
+                    fontWeight: "700",
+                    fontSize: "0.9rem",
+                    minWidth: "22px",
+                  }}
+                >
+                  #{i + 1}
+                </span>
+                <img
+                  src={player.photo}
+                  alt={player.name}
+                  onError={(e) => {
+                    e.currentTarget.src = appLogo;
+                    e.currentTarget.onerror = null;
+                  }}
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    flexShrink: 0,
+                  }}
+                />
+                <div>
+                  <p
+                    style={{
+                      color: "#fff",
+                      fontSize: "0.9rem",
+                      fontWeight: "600",
+                      margin: 0,
+                    }}
+                  >
+                    {player.name}
+                  </p>
+                  <p style={{ color: "#555", fontSize: "0.72rem", margin: 0 }}>
+                    {player.team}
+                  </p>
+                </div>
+              </div>
+              <span
+                style={{
+                  color: "#f59e0b",
+                  fontWeight: "700",
+                  fontSize: "1rem",
+                }}
+              >
+                {player.goals} ⚽
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Home() {
   const [matches, setMatches] = useState([]);
   const [scoreFallback, setScoreFallback] = useState(null);
@@ -495,6 +615,8 @@ function Home() {
   const [standingsLoading, setStandingsLoading] = useState(true);
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
+  const [topScorers, setTopScorers] = useState([]);
+  const [topScorersLoading, setTopScorersLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/matches")
@@ -542,6 +664,16 @@ function Home() {
       .catch(() => setNewsLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetch("/api/topscorers")
+      .then((res) => res.json())
+      .then((data) => {
+        setTopScorers(data || []);
+        setTopScorersLoading(false);
+      })
+      .catch(() => setTopScorersLoading(false));
+  }, []);
+
   const liveMatch = matches.find((m) => LIVE_STATUSES.includes(m.status));
   const upcomingMatches = matches
     .filter((m) => m.status === "NS" && new Date(m.date) >= new Date())
@@ -558,6 +690,7 @@ function Home() {
       />
       <StandingsCard standings={standings} loading={standingsLoading} />
       <NewsCard news={news} loading={newsLoading} />
+      <TopScorersCard topScorers={topScorers} loading={topScorersLoading} />
     </div>
   );
 }
