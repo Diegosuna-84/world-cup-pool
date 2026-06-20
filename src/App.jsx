@@ -7,6 +7,7 @@ import Profile from './pages/Profile'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import EditProfile from './pages/EditProfile'
+import Auth from './pages/Auth'
 
 function App() {
   const user = JSON.parse(localStorage.getItem('user'))
@@ -28,6 +29,7 @@ function App() {
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/auth" element={<Auth />} />
       </Routes>
     </div>
   )

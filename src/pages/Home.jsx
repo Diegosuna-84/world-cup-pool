@@ -1,28 +1,267 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../services/supabase";
 import Navbar from "../components/Navbar";
+import appLogo from "../assets/Wc_pool_logo.png";
+
+const LIVE_STATUSES = ["1H", "HT", "2H", "ET", "BT", "P", "LIVE"];
+const FINISHED_STATUSES = ["FT", "AET", "PEN"];
+
+function mapScoreFixture(item) {
+  return {
+    id: item.fixture.id,
+    home: item.teams.home.name,
+    away: item.teams.away.name,
+    homeLogo: item.teams.home.logo,
+    awayLogo: item.teams.away.logo,
+    group: item.league.round,
+    date: item.fixture.date,
+    status: item.fixture.status.short,
+    homeScoreFull: item.score.fulltime.home,
+    awayScoreFull: item.score.fulltime.away,
+    venueName: item.fixture.venue.name,
+    venueCity: item.fixture.venue.city,
+  };
+}
+
+function TeamRankBadge({ teamName, standings }) {
+  const standing = standings.find((s) => s.teamName === teamName);
+  if (!standing) return null;
+  return (
+    <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", marginTop: "0.4rem" }}>
+      <span style={{ background: "#1a2e1a", color: "#4ade80", fontSize: "0.7rem", fontWeight: "600", padding: "2px 8px", borderRadius: "12px" }}>
+        Grp {standing.group}
+      </span>
+      <span style={{ background: "#1a1a2e", color: "#4cc9f0", fontSize: "0.7rem", fontWeight: "600", padding: "2px 8px", borderRadius: "12px" }}>
+        Rank #{standing.rank}
+      </span>
+    </div>
+  );
+}
+
+function FeaturedMatchCard({ match, standings, loading }) {
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "1.5rem", boxSizing: "border-box" }}>
+      <div style={{ background: "#141414", borderRadius: "20px", padding: "2rem 1.5rem", border: "1px solid #222" }}>
+        <h2 style={{ color: "#fff", fontSize: "1rem", fontWeight: "700", textAlign: "center", marginBottom: "1.5rem", textTransform: "uppercase", letterSpacing: "1px" }}>
+          {loading
+            ? "Loading match..."
+            : !match
+            ? "No Match Available"
+            : LIVE_STATUSES.includes(match.status)
+            ? "🔴 Live Now"
+            : match.status === "NS"
+            ? "⏱ Next Match"
+            : "Last Result"}
+        </h2>
+
+        {!loading && match && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+              <span style={{ background: "#1a2e1a", color: "#4ade80", fontSize: "0.75rem", fontWeight: "600", padding: "4px 10px", borderRadius: "20px" }}>
+                {match.group}
+              </span>
+              <span style={{ color: "#555", fontSize: "0.8rem" }}>
+                {new Date(match.date).toLocaleDateString()}{" "}
+                {new Date(match.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ textAlign: "center", flex: 1 }}>
+                <img
+                  src={match.homeLogo}
+                  alt={match.home}
+                  onError={(e) => { e.currentTarget.src = appLogo; e.currentTarget.onerror = null; }}
+                  style={{ width: "72px", height: "72px", objectFit: "contain", display: "block", margin: "0 auto 0.5rem" }}
+                />
+                <p style={{ color: "#fff", fontWeight: "600", fontSize: "0.95rem", margin: 0 }}>{match.home}</p>
+                <TeamRankBadge teamName={match.home} standings={standings} />
+              </div>
+
+              <div style={{ textAlign: "center", padding: "0 0.75rem" }}>
+                {LIVE_STATUSES.includes(match.status) || FINISHED_STATUSES.includes(match.status) ? (
+                  <p style={{ color: "#fff", fontSize: "1.8rem", fontWeight: "700", margin: 0 }}>
+                    {match.homeScoreFull ?? 0} — {match.awayScoreFull ?? 0}
+                  </p>
+                ) : (
+                  <span style={{ color: "#333", fontSize: "0.7rem", fontWeight: "600", letterSpacing: "2px" }}>VS</span>
+                )}
+                {LIVE_STATUSES.includes(match.status) && (
+                  <p style={{ color: "#f59e0b", fontSize: "0.75rem", fontWeight: "600", marginTop: "0.4rem" }}>
+                    ⏱ {match.elapsedMinutes}'
+                  </p>
+                )}
+              </div>
+
+              <div style={{ textAlign: "center", flex: 1 }}>
+                <img
+                  src={match.awayLogo}
+                  alt={match.away}
+                  onError={(e) => { e.currentTarget.src = appLogo; e.currentTarget.onerror = null; }}
+                  style={{ width: "72px", height: "72px", objectFit: "contain", display: "block", margin: "0 auto 0.5rem" }}
+                />
+                <p style={{ color: "#fff", fontWeight: "600", fontSize: "0.95rem", margin: 0 }}>{match.away}</p>
+                <TeamRankBadge teamName={match.away} standings={standings} />
+              </div>
+            </div>
+
+            {match.venueName && (
+              <p style={{ color: "#555", fontSize: "0.75rem", textAlign: "center", marginTop: "1.5rem" }}>
+                📍 {match.venueName}{match.venueCity ? `, ${match.venueCity}` : ""}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StandingsCard({ standings, loading }) {
+  const sorted = [...standings].sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    return (b.goalsFor || 0) - (a.goalsFor || 0);
+  });
+
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "1.5rem", boxSizing: "border-box" }}>
+      <div style={{ background: "#141414", borderRadius: "20px", padding: "1.5rem", border: "1px solid #222", display: "flex", flexDirection: "column" }}>
+        <h2 style={{ color: "#fff", fontSize: "1rem", fontWeight: "700", marginBottom: "0.25rem", textTransform: "uppercase", letterSpacing: "1px" }}>
+          🏆 Top 5 — World Cup Standings
+        </h2>
+        <p style={{ color: "#555", fontSize: "0.75rem", marginBottom: "1.25rem" }}>
+          All groups combined, by points
+        </p>
+
+        {loading ? (
+          <p style={{ color: "#555", textAlign: "center" }}>Loading standings...</p>
+        ) : sorted.length === 0 ? (
+          <p style={{ color: "#555", textAlign: "center" }}>No standings available</p>
+        ) : (
+          <div style={{ maxHeight: "min(60vh, 420px)", overflowY: "auto" }}>
+            {sorted.map((team, i) => (
+              <div
+                key={`${team.teamName}-${i}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "#0d0d0d",
+                  borderRadius: "10px",
+                  padding: "0.75rem 1rem",
+                  marginBottom: "0.5rem",
+                  border: i < 5 ? "1px solid #1a3a1a" : "1px solid #1f1f1f",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <span style={{ color: i < 5 ? "#4ade80" : "#555", fontWeight: "700", fontSize: "0.9rem", minWidth: "22px" }}>
+                    #{i + 1}
+                  </span>
+                  <span style={{ color: "#fff", fontSize: "0.9rem", fontWeight: "600" }}>{team.teamName}</span>
+                  <span style={{ background: "#1a1a2e", color: "#4cc9f0", fontSize: "0.65rem", fontWeight: "600", padding: "2px 6px", borderRadius: "10px" }}>
+                    Grp {team.group}
+                  </span>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <span style={{ color: "#4cc9f0", fontWeight: "700", fontSize: "0.9rem" }}>{team.points} pts</span>
+                  <p style={{ color: "#555", fontSize: "0.7rem", margin: 0 }}>{team.goalsFor} GF</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NewsCard({ news, loading }) {
+  const topNews = news.slice(0, 5);
+
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "1.5rem", boxSizing: "border-box" }}>
+      <div style={{ background: "#141414", borderRadius: "20px", padding: "1.5rem", border: "1px solid #222" }}>
+        <h2 style={{ color: "#fff", fontSize: "1rem", fontWeight: "700", marginBottom: "1.25rem", textTransform: "uppercase", letterSpacing: "1px" }}>
+          ⚽ Breaking News
+        </h2>
+
+        {loading ? (
+          <p style={{ color: "#555", textAlign: "center" }}>Loading news...</p>
+        ) : topNews.length === 0 ? (
+          <p style={{ color: "#555", textAlign: "center" }}>No news available</p>
+        ) : (
+          topNews.map((article, i) => (
+            <a
+              key={i}
+              href={article.url}
+              target="_blank"
+              rel="noreferrer"
+              style={{ display: "flex", gap: "1rem", marginBottom: "0.85rem", background: "#0d0d0d", borderRadius: "12px", padding: "0.75rem", border: "1px solid #1f1f1f", textDecoration: "none" }}
+            >
+              {article.urlToImage && (
+                <img
+                  src={article.urlToImage}
+                  alt=""
+                  style={{ width: "70px", height: "70px", borderRadius: "8px", objectFit: "cover", flexShrink: 0 }}
+                />
+              )}
+              <div>
+                <p style={{ color: "#fff", fontSize: "0.88rem", fontWeight: "600", marginBottom: "0.25rem", lineHeight: "1.4" }}>
+                  {article.title}
+                </p>
+                <p style={{ color: "#555", fontSize: "0.72rem" }}>
+                  {new Date(article.publishedAt).toLocaleDateString()}
+                </p>
+              </div>
+            </a>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
 
 function Home() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [matches, setMatches] = useState([]);
+  const [scoreFallback, setScoreFallback] = useState(null);
+  const [matchesLoading, setMatchesLoading] = useState(true);
+  const [standings, setStandings] = useState([]);
+  const [standingsLoading, setStandingsLoading] = useState(true);
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        const stored = JSON.parse(localStorage.getItem("user"))
-        setUser(stored)
-      }
-    })
-  }, [])
+    fetch("/api/matches")
+      .then((res) => res.json())
+      .then(async (data) => {
+        setMatches(data || []);
+        const hasLiveOrUpcoming = (data || []).some(
+          (m) => LIVE_STATUSES.includes(m.status) || (m.status === "NS" && new Date(m.date) >= new Date())
+        );
+        if (!hasLiveOrUpcoming) {
+          try {
+            const scoreRes = await fetch("/api/scores");
+            const scoreData = await scoreRes.json();
+            const fixtures = (scoreData.response || []).map(mapScoreFixture);
+            fixtures.sort((a, b) => new Date(b.date) - new Date(a.date));
+            setScoreFallback(fixtures[0] || null);
+          } catch {
+            setScoreFallback(null);
+          }
+        }
+        setMatchesLoading(false);
+      })
+      .catch(() => setMatchesLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/standings")
+      .then((res) => res.json())
+      .then((data) => {
+        setStandings(data || []);
+        setStandingsLoading(false);
+      })
+      .catch(() => setStandingsLoading(false));
+  }, []);
 
   useEffect(() => {
     fetch("/api/news")
@@ -34,150 +273,18 @@ function Home() {
       .catch(() => setNewsLoading(false));
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (isLogin) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
-      if (error) {
-        setError("Invalid email or password")
-        return
-      }
-
-      const { data: profile } = await supabase
-        .from("users")
-        .select("*")
-        .eq("email", email)
-        .single()
-
-      if (profile) {
-        localStorage.setItem("user", JSON.stringify(profile))
-        setUser(profile)
-        navigate("/matches")
-      }
-
-    } else {
-      const { error: signUpError } = await supabase.auth.signUp({ email, password })
-
-      if (signUpError) {
-        setError(signUpError.message)
-        return
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from("users")
-        .insert([{ email, name }])
-        .select()
-        .single()
-
-      if (profileError) {
-        setError("Something went wrong. Try again.")
-        return
-      }
-
-      localStorage.setItem("user", JSON.stringify(profile))
-      setUser(profile)
-      navigate("/matches")
-    }
-  };
+  const liveMatch = matches.find((m) => LIVE_STATUSES.includes(m.status));
+  const upcomingMatches = matches
+    .filter((m) => m.status === "NS" && new Date(m.date) >= new Date())
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const featuredMatch = liveMatch || upcomingMatches[0] || scoreFallback;
 
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0a", color: "#fff" }}>
       <Navbar />
-
-      <div style={{ display: "flex", flexDirection: window.innerWidth < 768 ? "column" : "row", gap: "2rem", padding: "1rem", maxWidth: "1200px", margin: "0 auto" }}>
-
-        <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "1rem", color: "#fff" }}>
-            ⚽ World Cup 2026 News
-          </h2>
-          {newsLoading ? (
-            <p style={{ color: "#555" }}>Loading news...</p>
-          ) : (
-            news.map((article, i) => (
-              <a key={i} href={article.url} target="_blank" rel="noreferrer"
-                style={{ display: "flex", gap: "1rem", marginBottom: "1rem", background: "#141414", borderRadius: "12px", padding: "0.75rem", border: "1px solid #222", textDecoration: "none" }}>
-                {article.urlToImage && (
-                  <img src={article.urlToImage} alt=""
-                    style={{ width: "80px", height: "80px", borderRadius: "8px", objectFit: "cover", flexShrink: 0 }} />
-                )}
-                <div>
-                  <p style={{ color: "#fff", fontSize: "0.9rem", fontWeight: "600", marginBottom: "0.25rem", lineHeight: "1.4" }}>
-                    {article.title}
-                  </p>
-                  <p style={{ color: "#555", fontSize: "0.75rem" }}>
-                    {new Date(article.publishedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </a>
-            ))
-          )}
-        </div>
-
-        <div style={{ width: window.innerWidth < 768 ? "100%" : "360px", flexShrink: 0 }}>
-          {user ? (
-            <div style={{ background: "#141414", padding: "2rem", borderRadius: "20px", border: "1px solid #222", textAlign: "center" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⚽</div>
-              <h2 style={{ fontSize: "1.2rem", fontWeight: "700", marginBottom: "0.5rem" }}>Welcome back, {user.name}!</h2>
-              <p style={{ color: "#555", fontSize: "0.9rem", marginBottom: "1.5rem" }}>Ready to make your predictions?</p>
-              <button onClick={() => navigate("/matches")}
-                style={{ width: "100%", padding: "0.85rem", borderRadius: "10px", border: "none", background: "#e63946", color: "#fff", fontWeight: "700", fontSize: "1rem", cursor: "pointer" }}>
-                Go to Matches
-              </button>
-            </div>
-          ) : (
-            <div style={{ background: "#141414", padding: "2.5rem", borderRadius: "20px", border: "1px solid #222" }}>
-              <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-                <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⚽</div>
-                <h2 style={{ fontSize: "1.6rem", fontWeight: "700", marginBottom: "0.5rem" }}>WC 2026 Pool</h2>
-                <p style={{ color: "#555", fontSize: "0.9rem" }}>
-                  {isLogin ? "Welcome back" : "Create your account"}
-                </p>
-              </div>
-
-              {error && (
-                <p style={{ color: "#e63946", textAlign: "center", marginBottom: "1rem", fontSize: "0.9rem" }}>{error}</p>
-              )}
-
-              <form onSubmit={handleSubmit}>
-                {!isLogin && (
-                  <input type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)}
-                    style={{ width: "100%", padding: "0.8rem 1rem", marginBottom: "0.75rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
-                )}
-                <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required
-                  style={{ width: "100%", padding: "0.8rem 1rem", marginBottom: "0.75rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
-                <div style={{ position: "relative", marginBottom: "0.5rem" }}>
-                  <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required
-                    style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: "10px", border: "1px solid #222", background: "#0d0d0d", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box" }} />
-                  <span onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#555", fontSize: "0.85rem" }}>
-                    {showPassword ? "Hide" : "Show"}
-                  </span>
-                </div>
-
-                {isLogin && (
-                  <p onClick={() => navigate('/forgot-password')} style={{ color: "#555", fontSize: "0.8rem", textAlign: "right", cursor: "pointer", marginBottom: "1rem" }}>
-                    Forgot password?
-                  </p>
-                )}
-
-                <button type="submit"
-                  style={{ width: "100%", padding: "0.85rem", borderRadius: "10px", border: "none", background: "#e63946", color: "#fff", fontWeight: "700", fontSize: "1rem", cursor: "pointer" }}>
-                  {isLogin ? "Login" : "Sign Up"}
-                </button>
-              </form>
-
-              <p style={{ color: "#555", textAlign: "center", marginTop: "1.25rem", fontSize: "0.9rem", cursor: "pointer" }}
-                onClick={() => setIsLogin(!isLogin)}>
-                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}
-              </p>
-            </div>
-          )}
-        </div>
-
-      </div>
+      <FeaturedMatchCard match={featuredMatch} standings={standings} loading={matchesLoading} />
+      <StandingsCard standings={standings} loading={standingsLoading} />
+      <NewsCard news={news} loading={newsLoading} />
     </div>
   );
 }
