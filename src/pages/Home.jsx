@@ -39,7 +39,7 @@ function TeamRankBadge({ teamName, standings }) {
 
 function FeaturedMatchCard({ match, standings, loading }) {
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "1.5rem", boxSizing: "border-box" }}>
+    <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-start", padding: "1.5rem", boxSizing: "border-box" }}>
       <div style={{ background: "#141414", borderRadius: "20px", padding: "2rem 1.5rem", border: "1px solid #222" }}>
         <h2 style={{ color: "#fff", fontSize: "1rem", fontWeight: "700", textAlign: "center", marginBottom: "1.5rem", textTransform: "uppercase", letterSpacing: "1px" }}>
           {loading
@@ -123,7 +123,7 @@ function StandingsCard({ standings, loading }) {
   });
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "1.5rem", boxSizing: "border-box" }}>
+    <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-start", padding: "1.5rem", boxSizing: "border-box" }}>
       <div style={{ background: "#141414", borderRadius: "20px", padding: "1.5rem", border: "1px solid #222", display: "flex", flexDirection: "column" }}>
         <h2 style={{ color: "#fff", fontSize: "1rem", fontWeight: "700", marginBottom: "0.25rem", textTransform: "uppercase", letterSpacing: "1px" }}>
           🏆 Top 5 — World Cup Standings
@@ -178,7 +178,7 @@ function NewsCard({ news, loading }) {
   const topNews = news.slice(0, 5);
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "1.5rem", boxSizing: "border-box" }}>
+    <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-start", padding: "1.5rem", boxSizing: "border-box" }}>
       <div style={{ background: "#141414", borderRadius: "20px", padding: "1.5rem", border: "1px solid #222" }}>
         <h2 style={{ color: "#fff", fontSize: "1rem", fontWeight: "700", marginBottom: "1.25rem", textTransform: "uppercase", letterSpacing: "1px" }}>
           ⚽ Breaking News
@@ -190,7 +190,7 @@ function NewsCard({ news, loading }) {
           <p style={{ color: "#555", textAlign: "center" }}>No news available</p>
         ) : (
           topNews.map((article, i) => (
-            <a
+            
               key={i}
               href={article.url}
               target="_blank"
