@@ -16,19 +16,28 @@ function Auth() {
     setError('')
 
     if (isLogin) {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .single()
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-      if (error || !data) {
+      if (authError || !authData?.user) {
         setError('Invalid email or password')
         return
       }
 
-      localStorage.setItem('user', JSON.stringify(data))
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (profileError || !profile) {
+        setError('Logged in, but no profile found. Contact support.')
+        return
+      }
+
+      localStorage.setItem('user', JSON.stringify(profile))
       navigate('/matches')
 
     } else {
@@ -36,25 +45,35 @@ function Auth() {
         .from('users')
         .select('id')
         .eq('email', email)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         setError('Email already registered')
         return
       }
 
-      const { data, error } = await supabase
-        .from('users')
-        .insert([{ email, password, name: name || email.split('@')[0] }])
-        .select()
-        .single()
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      })
 
-      if (error) {
-        setError('Something went wrong. Try again.')
+      if (signUpError || !signUpData?.user) {
+        setError(signUpError?.message || 'Something went wrong. Try again.')
         return
       }
 
-      localStorage.setItem('user', JSON.stringify(data))
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .insert([{ email, name: name || email.split('@')[0] }])
+        .select()
+        .single()
+
+      if (profileError) {
+        setError('Account created, but profile setup failed. Contact support.')
+        return
+      }
+
+      localStorage.setItem('user', JSON.stringify(profile))
       navigate('/matches')
     }
   }
