@@ -180,7 +180,9 @@ function FeaturedMatchCard({ match, standings, loading }) {
                       margin: 0,
                     }}
                   >
-                    {match.homeScoreFull ?? 0} — {match.awayScoreFull ?? 0}
+                    {LIVE_STATUSES.includes(match.status)
+                      ? `${match.homeScore ?? 0} — ${match.awayScore ?? 0}`
+                      : `${match.homeScoreFull ?? 0} — ${match.awayScoreFull ?? 0}`}
                   </p>
                 ) : (
                   <span
@@ -434,7 +436,7 @@ function NewsCard({ news, loading }) {
           </p>
         ) : (
           topNews.map((article, i) => (
-            <a
+            
               key={i}
               href={article.url}
               target="_blank"
